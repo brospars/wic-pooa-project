@@ -1,7 +1,7 @@
 package arbrelexicographique;
 
 public class Noeud extends NoeudAbstrait {
-	private NoeudAbstrait fils;
+	protected NoeudAbstrait fils;
 	private char valeur;
 
 	public Noeud(NoeudAbstrait frere, NoeudAbstrait fils, char valeur) {

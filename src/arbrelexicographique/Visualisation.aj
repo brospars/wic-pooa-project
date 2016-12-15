@@ -12,7 +12,7 @@ public aspect Visualisation {
 	declare parents: ArbreLexicographique implements TreeModel;
 	declare parents: NoeudAbstrait implements TreeNode;
 
-	private DefaultTreeModel ArbreLexicographique.defaultTreeModel;
+	public DefaultTreeModel ArbreLexicographique.defaultTreeModel;
 	private DefaultMutableTreeNode NoeudAbstrait.defaultMutableTreeNode;
 	private JTree ArbreLexicographique.vue;
 	
@@ -21,79 +21,84 @@ public aspect Visualisation {
 	 *  Correspond à la "connexion" entre le Jtree de la GUI et le JTree de l'arbre lexicographique (appelé vue) 
 	 */	
 	public void ArbreLexicographique.setVue(JTree jt){
+		System.out.println("Set vue");
 		this.vue = jt;
 	}
-/*
- * ---------------------------- Pommes Cuts -------------------------------------------
- */
+	
+	
+	/*
+	 * ---------------------------- Pommes Cuts -------------------------------------------
+	 */
 	
 	/* 
 	 * Create new Tree model when a new ArbreLexicographique is instantiated 
 	 */
 	pointcut newAL(ArbreLexicographique arbre) : target(arbre) && execution(ArbreLexicographique.new());
 	after(ArbreLexicographique arbre): newAL(arbre){
-		arbre.defaultTreeModel = new DefaultTreeModel(new DefaultMutableTreeNode());
+		System.out.println("Pointcut instanciation Arbre");
+		arbre.defaultTreeModel = new DefaultTreeModel(new DefaultMutableTreeNode("Arbre Lexicographique"));
 	}
 	
 	/*
 	 * Creating a new marque -> create new TreeNode (empty), a marque has no frere 
 	 */
-	pointcut newMarque(Marque m) : target(n) && execution(Marque.new(NoeudAbstrait));
+	pointcut newMarque(Marque m) : target(m) && execution(Marque.new(NoeudAbstrait));
 	after(Marque m): newMarque(m){
-		m.defaultMutableTreeNode = new DefaultMutableTreeNode();
+		System.out.println("pointcut new marque");
+		m.defaultMutableTreeNode = new DefaultMutableTreeNode("Marque");
 	}
 	
 	/*
 	 * Creating a new node -> create new TreeNode with a frere, a fils and a char
 	 */
-	pointcut newNoeud(Noeud n, NoeudAbstrait frere, NoeudAbstrait fils, char c) : target(n) && execution(NoeudAbstrait.new());
+	pointcut newNoeud(Noeud n, NoeudAbstrait frere, NoeudAbstrait fils, char c) : target(n) && args(frere,fils,c) && execution(Noeud.new(NoeudAbstrait, NoeudAbstrait, char));
 	after(Noeud n, NoeudAbstrait frere, NoeudAbstrait fils, char c): newNoeud(n, frere, fils, c){
+		System.out.println("pointcut new noeud : "+c);
 		n.defaultMutableTreeNode = new DefaultMutableTreeNode(Character.toString(c));
+		n.defaultMutableTreeNode.add(fils.defaultMutableTreeNode);
 	}
 
 	/*
-	 * Put the root entrie to the TreeNode (related to ArbreLexicographique.estVide()
+	 * Chaque fois que la racine de l'arbre est changée
 	 */
 	pointcut rootAL(ArbreLexicographique arbre) : this(arbre) && set(NoeudAbstrait ArbreLexicographique.entree);
 	
+	
 	/*
-	 * Update tree model adding nodes when a string is "ajout" (added) 
+	 * Chaque fois que la racine est changé lors de l'ajout
 	 */
-	pointcut ajoutStringAL(ArbreLexicographique arbre) : target(arbre) && execution(Boolean ArbreLexicographique.ajout(String));
-	after(ArbreLexicographique arbre): ajoutStringAL(arbre){
-		((DefaultMutableTreeNode)arbre.defaultMutableTreeNode.)
-		((DefaultMutableTreeNode) n.model.getRoot()).insert(n.entree.treeNode, 0);
-		((DefaultTreeModel)arbre.defaultTreeModel).reload();
+	pointcut updateRacineAjout(ArbreLexicographique arbre) : target(arbre) && rootAL(ArbreLexicographique) && withincode(boolean ArbreLexicographique.ajout(String));
+	after(ArbreLexicographique arbre) : updateRacineAjout(arbre){
+		System.out.println("pointcut update racine");
+		if(arbre.entree.defaultMutableTreeNode != null){
+			((DefaultMutableTreeNode) arbre.defaultTreeModel.getRoot()).insert(arbre.entree.defaultMutableTreeNode, 0);
+			((DefaultTreeModel)arbre.defaultTreeModel).reload();
+		}
 	}
 	
 	/*
-	 * Suppr tree model adding nodes when a string is "ajout" (added) 
+	 * Chaque fois qu'un fils ou un frere est changé
 	 */
-	pointcut supprStringAL(ArbreLexicographique arbre) : target(arbre) && execution(Boolean ArbreLexicographique.suppr(String));
-	after(ArbreLexicographique arbre): supprStringAL(arbre){
-		
+	pointcut updateFrere(NoeudAbstrait n) : target(n) && set(NoeudAbstrait NoeudAbstrait.frere);
+	pointcut updateFils(Noeud n, NoeudAbstrait f) : this(n) && target(f) && set(NoeudAbstrait Noeud.fils);
+	
+	
+	/*
+	 * Chaque fois qu'un frere change lors de l'ajout
+	 */
+	pointcut updateFrereAjout(NoeudAbstrait n) : target(n) && updateFrere(NoeudAbstrait) && withincode(NoeudAbstrait NoeudAbstrait.ajout(String));
+	after(NoeudAbstrait n) : updateFrereAjout(n){
+		System.out.println("pointcut update frere");
+		if(n.getParent() != null) ((MutableTreeNode) n.defaultMutableTreeNode.getParent()).insert(n.frere.defaultMutableTreeNode,0);
 	}
 	
-	public boolean ajout(String s) {
-		try {
-			entree = entree.ajout(s);
-		} catch (ArbreLexicographiqueException ale) {
-			return false;
-		}
-		return true;
-	}
-
-	public boolean suppr(String s) {
-		try {
-			entree = entree.suppr(s);
-		} catch (ArbreLexicographiqueException ale) {
-			return false;
-		}
-		return true;
-	}
-
-	public boolean estVide() {
-		return entree instanceof NoeudVide;
+	/*
+	 * Chaque fois qu'un fils change lors de l'ajout
+	 */
+	pointcut updateFilsAjout(Noeud n) : target(n) &&  updateFils(Noeud, NoeudAbstrait) && withincode(NoeudAbstrait NoeudAbstrait.ajout(String));
+	after(Noeud n) : updateFilsAjout(n){
+		System.out.println("pointcut update fils");
+		n.defaultMutableTreeNode.add(n.fils.defaultMutableTreeNode);
 	}
 	
 	/*
