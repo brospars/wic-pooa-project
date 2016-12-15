@@ -1,7 +1,7 @@
 package arbrelexicographique;
 
 public abstract class NoeudAbstrait {
-	protected NoeudAbstrait frere;
+	protected NoeudAbstrait frere; // Changer private to protected (Visualisation.aj)
 
 	public NoeudAbstrait(NoeudAbstrait frere) {
 		this.frere = frere;
@@ -11,13 +11,13 @@ public abstract class NoeudAbstrait {
 
 	public abstract boolean prefixe(String s);
 
-	public abstract int nbMots(); // nombre d'éléments
+	public abstract int nbMots(); // nombre d'ï¿½lï¿½ments
 
 	public abstract NoeudAbstrait ajout(String s) throws ArbreLexicographiqueException;
 
 	public abstract NoeudAbstrait suppr(String s) throws ArbreLexicographiqueException;
 
-	public abstract String toString(String s); // éléments séparés par \n
+	public abstract String toString(String s); // ï¿½lï¿½ments sï¿½parï¿½s par \n
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
