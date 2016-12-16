@@ -8,7 +8,7 @@ import javax.swing.tree.*;
 
 import arbrelexicographique.v3.ArbreLexicographiqueException;
 
-public aspect Visualisation {
+public privileged aspect Visualisation {
 	declare parents: ArbreLexicographique implements TreeModel;
 	declare parents: NoeudAbstrait implements TreeNode;
 
@@ -57,19 +57,27 @@ public aspect Visualisation {
 		n.defaultMutableTreeNode = new DefaultMutableTreeNode(Character.toString(c));
 		n.defaultMutableTreeNode.add(fils.defaultMutableTreeNode);
 	}
+	
+	
 
-	/*
-	 * Chaque fois que la racine de l'arbre est changée
-	 */
+	//Chaque fois que la racine de l'arbre est changée
+	
 	pointcut rootAL(ArbreLexicographique arbre) : this(arbre) && set(NoeudAbstrait ArbreLexicographique.entree);
 	
+	// Chaque fois qu'un fils ou un frere est changé
+	
+	pointcut updateFrere(NoeudAbstrait n) : target(n) && set(NoeudAbstrait NoeudAbstrait.frere);
+	pointcut updateFils(Noeud n, NoeudAbstrait f) : this(n) && target(f) && set(NoeudAbstrait Noeud.fils);
+	
+	
+	// -------------------------  AJOUT -------------------------------
 	
 	/*
 	 * Chaque fois que la racine est changé lors de l'ajout
 	 */
 	pointcut updateRacineAjout(ArbreLexicographique arbre) : target(arbre) && rootAL(ArbreLexicographique) && withincode(boolean ArbreLexicographique.ajout(String));
 	after(ArbreLexicographique arbre) : updateRacineAjout(arbre){
-		System.out.println("pointcut update racine");
+		System.out.println("pointcut update racine ajout");
 		if(arbre.entree.defaultMutableTreeNode != null){
 			((DefaultMutableTreeNode) arbre.defaultTreeModel.getRoot()).insert(arbre.entree.defaultMutableTreeNode, 0);
 			((DefaultTreeModel)arbre.defaultTreeModel).reload();
@@ -77,29 +85,74 @@ public aspect Visualisation {
 	}
 	
 	/*
-	 * Chaque fois qu'un fils ou un frere est changé
-	 */
-	pointcut updateFrere(NoeudAbstrait n) : target(n) && set(NoeudAbstrait NoeudAbstrait.frere);
-	pointcut updateFils(Noeud n, NoeudAbstrait f) : this(n) && target(f) && set(NoeudAbstrait Noeud.fils);
-	
-	
-	/*
-	 * Chaque fois qu'un frere change lors de l'ajout
+	 * Chaque fois qu'un frere change lors de l'ajout :
+	 * 		- Si le Parent n'est pas nul, alors on ajoute le frère au parent (un frère devient fils du parent)
 	 */
 	pointcut updateFrereAjout(NoeudAbstrait n) : target(n) && updateFrere(NoeudAbstrait) && withincode(NoeudAbstrait NoeudAbstrait.ajout(String));
 	after(NoeudAbstrait n) : updateFrereAjout(n){
-		System.out.println("pointcut update frere");
+		System.out.println("pointcut update frere ajout");
 		if(n.getParent() != null) ((MutableTreeNode) n.defaultMutableTreeNode.getParent()).insert(n.frere.defaultMutableTreeNode,0);
 	}
 	
 	/*
-	 * Chaque fois qu'un fils change lors de l'ajout
+	 * Chaque fois qu'un fils change lors de l'ajout :
+	 * 		- Un fils est ajouté au noeud
 	 */
 	pointcut updateFilsAjout(Noeud n) : target(n) &&  updateFils(Noeud, NoeudAbstrait) && withincode(NoeudAbstrait NoeudAbstrait.ajout(String));
 	after(Noeud n) : updateFilsAjout(n){
-		System.out.println("pointcut update fils");
+		System.out.println("pointcut update fils ajout");
 		n.defaultMutableTreeNode.add(n.fils.defaultMutableTreeNode);
 	}
+	
+	// -------------------------  SUPPRESSION -------------------------------
+	
+	/*
+	 * Chaque fois que la racine est changé lors de la suppression
+	 */
+	pointcut updateRacineSuppr(ArbreLexicographique arbre) : target(arbre) && rootAL(ArbreLexicographique) && withincode(boolean ArbreLexicographique.suppr(String));
+	before(ArbreLexicographique arbre) : updateRacineSuppr(arbre){
+		System.out.println("pointcut update racine suppr before");
+		arbre.entree.defaultMutableTreeNode.removeFromParent();
+	}
+	after(ArbreLexicographique arbre) : updateRacineSuppr(arbre){
+		System.out.println("pointcut update racine suppr after");
+		if(!(arbre.entree instanceof NoeudVide)){
+			System.out.println("hanté NoeudVide");
+			((DefaultMutableTreeNode) arbre.defaultTreeModel.getRoot()).insert(arbre.entree.defaultMutableTreeNode, 0);
+		}
+		arbre.defaultTreeModel.reload();
+	}
+	
+	/*
+	 * Chaque fois qu'un frere change lors de la suppression
+	 */
+	pointcut updateFrereSuppr(NoeudAbstrait n) : target(n) && updateFrere(NoeudAbstrait) && withincode(NoeudAbstrait NoeudAbstrait.suppr(String));
+	before(NoeudAbstrait n) : updateFrereSuppr(n){
+		System.out.println("pointcut update frere suppr");
+		if(n.frere != null){
+			n.frere.defaultMutableTreeNode.removeFromParent();
+		}
+	}after(NoeudAbstrait n) : updateFrereSuppr(n){
+		if(!(n.frere instanceof NoeudVide)){
+			((DefaultMutableTreeNode) n.getParent()).add(n.frere.defaultMutableTreeNode);
+		}
+	}
+	
+	/*
+	 * Chaque fois qu'un fils change lors de la suppression
+	 */
+	pointcut updateFilsSuppr(Noeud n) : target(n) &&  updateFils(Noeud, NoeudAbstrait) && withincode(NoeudAbstrait NoeudAbstrait.suppr(String));
+	before(Noeud n) : updateFilsSuppr(n){
+		System.out.println("pointcut update fils suppr : "+n.valeur);
+		if(n.fils.defaultMutableTreeNode.getParent() != null){
+			n.defaultMutableTreeNode.remove(n.fils.defaultMutableTreeNode);
+		}
+	}after(Noeud n) : updateFilsSuppr(n){
+		if(!(n.fils instanceof NoeudVide)){
+			n.defaultMutableTreeNode.add(n.fils.defaultMutableTreeNode);
+		}
+	}
+	
 	
 	/*
 	 * -------------------------  TreeModel Methods -------------------------------

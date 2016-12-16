@@ -1,7 +1,7 @@
 package arbrelexicographique;
 
 public abstract class NoeudAbstrait {
-	protected NoeudAbstrait frere; // Changer private to protected (Visualisation.aj)
+	protected NoeudAbstrait frere;
 
 	public NoeudAbstrait(NoeudAbstrait frere) {
 		this.frere = frere;

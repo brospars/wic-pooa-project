@@ -1,7 +1,7 @@
 package arbrelexicographique;
 
 public class ArbreLexicographique {
-	protected NoeudAbstrait entree;// Changer private to protected (Visualisation.aj)
+	private NoeudAbstrait entree;// Changer private to protected (Visualisation.aj)
 
 	public ArbreLexicographique() {
 		entree = new NoeudVide();

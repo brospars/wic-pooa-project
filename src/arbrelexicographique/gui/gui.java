@@ -14,6 +14,7 @@ import javax.swing.SwingConstants;
 import javax.swing.Timer;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.tree.DefaultTreeModel;
 
 import arbrelexicographique.ArbreLexicographique;
 
@@ -109,7 +110,9 @@ public class gui {
 		tree = new JTree(arbre.defaultTreeModel);
 		arbre.setVue(tree);
 		
-		tabbedPane.addTab("Tree", null, tree, null);
+		JScrollPane scrollPane2 = new JScrollPane(tree);
+		
+		tabbedPane.addTab("Tree", null, scrollPane2, null);
 		
 		lblinfo = new JLabel("info");
 		frame.getContentPane().add(lblinfo, BorderLayout.SOUTH);
@@ -135,8 +138,8 @@ public class gui {
 		JMenuItem mntmNewMenuItem_1 = new JMenuItem("google it ? ");
 		mnNewMenu.add(mntmNewMenuItem_1);
 		
-		JMenuItem mntmNewMenuItem_3 = new JMenuItem("call your mum ");
-		mnNewMenu.add(mntmNewMenuItem_3);
+		JMenuItem menuTest = new JMenuItem("Test automatique");
+		mnNewMenu.add(menuTest);
 		
 		lblinfo.setText("L'arbre contient "+arbre.nbMots()+" mots");
 		
@@ -182,6 +185,17 @@ public class gui {
 			  }else{
 				  
 			  }
+		  }
+		});
+		
+		menuTest.addActionListener(new ActionListener(){
+		  public void actionPerformed(ActionEvent e){
+			 arbre.ajout("ab");
+			 arbre.ajout("abc");
+			 arbre.ajout("bca");
+			 arbre.ajout("a");
+			 arbre.ajout("bac");
+			 arbre.ajout("b");
 		  }
 		});
 
