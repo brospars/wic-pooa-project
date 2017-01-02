@@ -149,7 +149,10 @@ public class gui {
 	        }
 	    });
 
-		
+		/*
+		* Create a new tree
+		* Not working properly → only works with the list view
+		*/
 		menuNouveau.addActionListener(new ActionListener(){
 		  public void actionPerformed(ActionEvent e){
 		    arbre = new ArbreLexicographique();
@@ -158,6 +161,9 @@ public class gui {
 		  }
 		});
 		
+		/*
+		* Save the tree in a file
+		*/
 		menuEnregistrer.addActionListener(new ActionListener(){
 		  public void actionPerformed(ActionEvent e){
 			  System.out.println("sauvegarder");
@@ -171,7 +177,11 @@ public class gui {
 			  }
 		  }
 		});
-		
+
+
+		/*
+		* Load a file and add it to the current tree
+		*/
 		menuCharger.addActionListener(new ActionListener(){
 		  public void actionPerformed(ActionEvent e){
 			  System.out.println("charger");
@@ -188,6 +198,9 @@ public class gui {
 		  }
 		});
 		
+		/*
+		* Add some testing words
+		*/
 		menuTest.addActionListener(new ActionListener(){
 		  public void actionPerformed(ActionEvent e){
 			 arbre.ajout("ab");
@@ -199,7 +212,9 @@ public class gui {
 		  }
 		});
 
-		
+		/*
+		* Display in the bottom label if the tree containe the word
+		*/
 		contientButton.addActionListener(new ActionListener(){
 		  public void actionPerformed(ActionEvent e){
 			  if(arbre.contient(textField.getText())){
@@ -210,6 +225,9 @@ public class gui {
 		  }
 		});
 		
+		/*
+		* Add the word to the tree and tells you if the add was succesful
+		*/
 		ajoutButton.addActionListener(new ActionListener(){
 		  public void actionPerformed(ActionEvent e){
 			  if(arbre.ajout(textField.getText())){
@@ -221,6 +239,9 @@ public class gui {
 		  }
 		});
 		
+		/*
+		* Display in the bottom label if the word is prefix of another word in the tree
+		*/
 		prefixeButton.addActionListener(new ActionListener(){
 		  public void actionPerformed(ActionEvent e){
 			  if(arbre.prefixe(textField.getText())){
@@ -231,6 +252,9 @@ public class gui {
 		  }
 		});
 		
+		/*
+		* Delete the word in the tree and tells you if the delete was succesful
+		*/
 		supprButton.addActionListener(new ActionListener(){
 		  public void actionPerformed(ActionEvent e){
 		    if(arbre.suppr(textField.getText())){
@@ -243,6 +267,9 @@ public class gui {
 		});
 	}
 	
+	/*
+	* Set an Info in the bottom label for 3 seconds and then redisplay the number of words
+	*/
 	public void setInfo(String info){
 		lblinfo.setText(info+" | L'arbre contient "+arbre.nbMots()+" mots");
 		Timer timer = new Timer(3000,new ActionListener(){

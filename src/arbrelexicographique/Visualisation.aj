@@ -25,11 +25,6 @@ public privileged aspect Visualisation {
 		this.vue = jt;
 	}
 	
-	
-	/*
-	 * ---------------------------- Pommes Cuts -------------------------------------------
-	 */
-	
 	/* 
 	 * Create new Tree model when a new ArbreLexicographique is instantiated 
 	 */
@@ -101,7 +96,7 @@ public privileged aspect Visualisation {
 	pointcut updateFilsAjout(Noeud n) : target(n) &&  updateFils(Noeud, NoeudAbstrait) && withincode(NoeudAbstrait NoeudAbstrait.ajout(String));
 	after(Noeud n) : updateFilsAjout(n){
 		System.out.println("pointcut update fils ajout");
-		n.defaultMutableTreeNode.add(n.fils.defaultMutableTreeNode);
+		n.defaultMutableTreeNode.insert(n.fils.defaultMutableTreeNode,0);
 	}
 	
 	// -------------------------  SUPPRESSION -------------------------------
@@ -134,7 +129,7 @@ public privileged aspect Visualisation {
 		}
 	}after(NoeudAbstrait n) : updateFrereSuppr(n){
 		if(!(n.frere instanceof NoeudVide)){
-			((DefaultMutableTreeNode) n.getParent()).add(n.frere.defaultMutableTreeNode);
+			((DefaultMutableTreeNode) n.getParent()).insert(n.frere.defaultMutableTreeNode,0);
 		}
 	}
 	
@@ -149,7 +144,7 @@ public privileged aspect Visualisation {
 		}
 	}after(Noeud n) : updateFilsSuppr(n){
 		if(!(n.fils instanceof NoeudVide)){
-			n.defaultMutableTreeNode.add(n.fils.defaultMutableTreeNode);
+			n.defaultMutableTreeNode.insert(n.fils.defaultMutableTreeNode,0);
 		}
 	}
 	
